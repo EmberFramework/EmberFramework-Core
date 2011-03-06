@@ -1,0 +1,72 @@
+-- main core of ember
+/ember/system/
+/ember/system/include
+/ember/system/lib
+/ember/system/lib/Smarty
+...
+/ember/system/class
+/ember/system/modules
+/ember/system/modules/functions or plugins
+/ember/system/modules/templates
+/ember/system/smarty/
+/ember/system/smarty/plugins
+/ember/system/smarty/sysplugins
+
+-- webroot of ember
+/ember/webroot
+
+-- ember themes some come from core others users provide
+/ember/themes
+/ember/themes/theme_name/templates
+/ember/themes/theme_name/containers
+/ember/themes/theme_name/media
+/ember/themes/theme_name/css
+/ember/themes/theme_name/js
+/ember/themes/theme_name/js-lib
+
+
+-- starts empty place where users can load their module packages
+/ember/modules/plugins
+/ember/modules/plugins/mod_package_name
+/ember/modules/templates
+/ember/modules/templates/mod_package_name
+/ember/modules/schema
+/ember/modules/schema/mod_package_name
+/ember/modules/tests
+/ember/modules/tests/mod_package_name
+
+-- site's directories
+/ember/sites
+/ember/sites/site_name
+/ember/sites/site_name/templates
+/ember/sites/site_name/containers
+/ember/sites/site_name/media
+/ember/sites/site_name/css
+/ember/sites/site_name/js
+/ember/sites/site_name/js-lib
+/ember/sites/site_name/smarty
+/ember/sites/site_name/smarty/compiled
+/ember/sites/site_name/smarty/cache
+/ember/sites/site_name/smarty/config
+
+-- assets loaded into ember by CMS type functions
+/ember/assets
+/ember/assets/media
+
+-- for background scripts
+/ember/bin or scripts
+
+-- Files not used during the execution of the framework
+
+-- php plugins src provided / used by ember
+/ember/php_plugins
+
+-- db schema for the core of ember
+/ember/schema
+
+-- documentation for ember
+/ember/documentation
+
+-- unit tests for the core of ember
+/ember/tests
+
