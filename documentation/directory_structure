@@ -11,6 +11,7 @@
 /ember/system/smarty/
 /ember/system/smarty/plugins
 /ember/system/smarty/sysplugins
+/ember/system/config
 
 -- webroot of ember
 /ember/webroot
@@ -23,6 +24,7 @@
 /ember/themes/theme_name/css
 /ember/themes/theme_name/js
 /ember/themes/theme_name/js-lib
+/ember/themes/theme_name/config
 
 
 -- starts empty place where users can load their module packages
@@ -36,6 +38,10 @@
 /ember/modules/tests/mod_package_name
 /ember/modules/class
 /ember/modules/class/mod_package_name
+/ember/modules/config
+/ember/modules/config/mod_package_name
+/ember/modules/scripts/
+
 
 -- site's directories
 /ember/sites
@@ -50,6 +56,7 @@
 /ember/sites/site_name/smarty/compiled
 /ember/sites/site_name/smarty/cache
 /ember/sites/site_name/smarty/config
+/ember/sites/site_name/config
 
 -- assets loaded into ember by CMS type functions
 /ember/assets
@@ -68,6 +75,9 @@
 
 -- documentation for ember
 /ember/documentation
+/ember/documentation/phpDocs
+/ember/documentation/Manual
+
 
 -- unit tests for the core of ember
 /ember/tests
