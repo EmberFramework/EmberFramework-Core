@@ -1,4 +1,5 @@
 -- main core of ember
+-- Part of Core
 /ember/system/
 /ember/system/include
 /ember/system/lib
@@ -14,9 +15,11 @@
 /ember/system/config
 
 -- webroot of ember
+-- Part of Core
 /ember/webroot
 
 -- ember themes some come from core others users provide
+-- Part of Core (Realy only Default should be in Core)
 /ember/themes
 /ember/themes/theme_name/templates
 /ember/themes/theme_name/containers
@@ -28,6 +31,7 @@
 
 
 -- starts empty place where users can load their module packages
+-- NOT part of Core, Just settings.inc.php defines where each of this DIRs are so users COULD rearange
 /ember/modules/plugins
 /ember/modules/plugins/mod_package_name
 /ember/modules/templates
@@ -40,10 +44,13 @@
 /ember/modules/class/mod_package_name
 /ember/modules/config
 /ember/modules/config/mod_package_name
-/ember/modules/scripts/
-
+/ember/modules/scripts
+/ember/modules/scripts/mod_package_name
+/ember/modules/docs
+/ember/modules/docs/mod_package_name
 
 -- site's directories
+-- NOT part of Core, Layout is (script in core would add new sites)
 /ember/sites
 /ember/sites/site_name
 /ember/sites/site_name/templates
@@ -57,28 +64,35 @@
 /ember/sites/site_name/smarty/cache
 /ember/sites/site_name/smarty/config
 /ember/sites/site_name/config
+/ember/sites/site_name/docs
 
 -- assets loaded into ember by CMS type functions
+-- NOT part of Core. Defined in settings
 /ember/assets
 /ember/assets/media
 
 -- for background scripts
+-- Part of Core
 /ember/bin or scripts
 
 -- Files not used during the execution of the framework
 
 -- php plugins src provided / used by ember
+-- Part of Core
 /ember/php_plugins
 
 -- db schema for the core of ember
+-- Part of Core
 /ember/schema
 
 -- documentation for ember
+-- Part of Core
 /ember/documentation
 /ember/documentation/phpDocs
 /ember/documentation/Manual
 
 
 -- unit tests for the core of ember
+-- Part of Core
 /ember/tests
 

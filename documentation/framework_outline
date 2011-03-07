@@ -21,6 +21,7 @@ System Config
 - Files dictate the system configuration
 - DB connectors
 - Could list the sites here (or in db)
+- Not meant to compeat with common.inc.php these would be DB replacement stuff
 
 Schema
 
