@@ -34,6 +34,8 @@
 /ember/modules/schema/mod_package_name
 /ember/modules/tests
 /ember/modules/tests/mod_package_name
+/ember/modules/class
+/ember/modules/class/mod_package_name
 
 -- site's directories
 /ember/sites
