@@ -1,0 +1,22 @@
+<VirtualHost *:80>
+	DocumentRoot	/var/www/ember/webroot
+	ServerName	emberframework.com
+</VirtualHost>
+
+<Directory "/var/www/ember/webroot">
+	php_value auto_prepend_file /var/www/ember/system/include/common.inc.php
+	php_value register_globals off
+	php_value magic_quotes_gpc off
+	php_value include_path ".:/var/www/ember/system:/var/www/ember/system/include:/var/www/ember/system/lib:/usr/share/php:/usr/share/pear"
+	php_value display_errors 1
+	php_value error_reporting 2147483647
+	php_value upload_max_filesize 10M
+	php_value memory_limit 64M
+	php_value post_max_size 12M
+
+	RewriteEngine on
+
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteRule ^(.*)$ /index.php [QSA,L]
+</Directory>
+

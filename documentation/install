@@ -1,0 +1,12 @@
+Installation instructions:
+
+Install apache / PHP > 5.3
+Clone repository into a path (ember) accessable by apache
+Create a VirtualHost in apache (sample apache config in apache_config) pointing the document root to webroot in the ember dir
+Update paths in sample apache config as needed
+
+Start apache
+
+Apache will hit any file in webroot, it defaults to index.php
+
+
