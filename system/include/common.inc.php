@@ -96,7 +96,16 @@
 
 
 	//INIT Session
+	
+	Session::init();
+
+
+	//INIT Debug
+	//INIT DB
+	//INIT Cache
 	//INIT Site
 	//INIT Smarty
 	//INIT Permissions
 	//INIT User
+
+	Session::finalize();

@@ -17,3 +17,5 @@ echo '</pre>';
 echo '<pre>';
 echo 'Page Load Time: ' . getPageLoadTime();
 echo '</pre>';
+
+Session::finalize();
