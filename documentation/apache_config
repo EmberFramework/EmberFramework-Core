@@ -4,6 +4,9 @@
 </VirtualHost>
 
 <Directory "/var/www/ember/webroot">
+
+	Options +MultiViews
+
 	php_value auto_prepend_file /var/www/ember/system/include/common.inc.php
 	php_value register_globals off
 	php_value magic_quotes_gpc off
