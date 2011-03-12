@@ -95,12 +95,10 @@
 	//spl_autoload_register('emberAutoload', true, true);
 
 
-	//INIT Session
-	
 	Session::init();
 
-
-	//INIT Debug
+	Debug::init();
+	
 	//INIT DB
 	//INIT Cache
 	//INIT Site

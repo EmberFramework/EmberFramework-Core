@@ -77,19 +77,17 @@ class Session implements iSession
 			//Detect if Object recovered
 			$new = array_search(TRUE, $required) === FALSE ? FALSE : TRUE;
 
-			//TODO: if Debug
-			/*
-			foreach($required as $k => $r)
-			{
-				if($r)
-					print_r('Session: var not recovered: '.$k);
-			}*/
+			if(Debug::isEnabled())
+				foreach($required as $k => $r)
+				{
+					if($r)
+						Debug::log('Session: var not recovered: '.$k, Debug::LOG_SESSION);
+				}
 		}
 
 		if($new)
 		{
 			self::$id = 0;
-			self::$objects = array();
 			self::$user_id = 0;
 			self::$session_page_number = 0;
 			self::$session_start_time = time();
@@ -139,6 +137,7 @@ class Session implements iSession
 		if(array_search('iSession', $implements) === FALSE)
 			throw new Exception("Class: {$class} not compatable, does not implement iSession");
 
+		Debug::log('Registering: '.$class, Debug::LOG_SESSION);
 		self::$objects[$class] = $class::OBJECT_VERSION;
 	}
 
@@ -150,17 +149,23 @@ class Session implements iSession
 	public static function getObject($class)
 	{
 		//Rebuilding object, version violation
-		//TODO: Report through the Debug class
 		if(!isset(self::$objects[$class]))
+		{
+			Debug::log('Object not in session: '.$class, Debug::LOG_SESSION);
 			return array();
+		}
 
 		if($class::OBJECT_VERSION != self::$objects[$class])
 		{
+			Debug::log('Version changed: '.$class, Debug::LOG_SESSION);
 			unset(self::$objects[$class]);
 			return array();
 		}
 		else
+		{
+			Debug::log('Object in session: '.$class, Debug::LOG_SESSION);
 			return self::$data[$class];
+		}
 	}
 
 	/**
@@ -193,7 +198,7 @@ class Session implements iSession
 		if(!isset(self::$objects[$class]))
 			throw new Exception( "Class not registered" );
 
-		//TODO: Log the save in debug
+		Debug::log('Object saved to session: '.$class, Debug::LOG_SESSION);
 
 		self::$data[$class] = $class::serialize();
 		self::$objects[$class] = $class::OBJECT_VERSION;
