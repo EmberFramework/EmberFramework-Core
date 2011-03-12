@@ -2,10 +2,9 @@
 
 	require_once('/var/www/ember/system/include/common.inc.php');
 
-	print_r($GLOBALS);
+	Debug::enable();
 
-	echo 'DOCUMENT_ROOT: '.DOCUMENT_ROOT . PHP_EOL;
-	echo 'CODE_BASE: '.CODE_BASE . PHP_EOL;
-	echo 'CODE_BASE_ROOT:'.CODE_BASE_ROOT . PHP_EOL;
+	foreach(Debug::getAvalableOptions() as $o)
+		Debug::setOption($o);
 
-	echo 'Page Load Time: ' . getPageLoadTime() . PHP_EOL;
+	Debug::printDebuggingInfo();

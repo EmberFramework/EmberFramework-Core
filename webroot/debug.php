@@ -10,7 +10,7 @@ if(isset($_GET['disabled']))
 else
 {
 	echo 'Debugging Enabled<br/>';
-	Debug::enable ();
+	Debug::enable();
 
 	foreach(Debug::getAvalableOptions() as $o)
 		Debug::setOption($o);

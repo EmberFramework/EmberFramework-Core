@@ -2,14 +2,39 @@
 class Debug implements iSession
 {
 	//Session saved vars
+	/**
+	 * Indecates if debugging is enabled
+	 * @var boolean
+	 */
 	private static $enabled = FALSE;
+	/**
+	 * Indicates the output mode used by debugging
+	 * @var string
+	 */
 	private static $mode;
+	/**
+	 *
+	 * @var array keyed by option contains TRUE for eneabled FALSE or not set for disabled
+	 */
 	private static $options;
 
 	//Vars not saved in session
+	/**
+	 * Data saved by the Debugging class when the log call is made
+	 * to be displayed at the end of the session
+	 * @var array
+	 */
 	private static $data;
+	/**
+	 *
+	 * @var boolean prevents the debug output from being printed twice
+	 */
 	private static $debug_printed = FALSE;
 
+	/**
+	 *
+	 * @var array Variables to be stored in the session
+	 */
 	private static $required_vars = array(
 		'enabled' => TRUE,
 		'mode' => TRUE,
@@ -33,8 +58,11 @@ class Debug implements iSession
 	const LOG_GLOBALS = 'LOG_GLOBALS';
 	const LOG_PAGELOAD_TIME = 'LOG_PAGE_LOAD_TIME';
 	const LOG_CODEBASE = 'LOG_CODEBASE';
-
-	static $avalable_options = array(
+	/**
+	 * Used by validate options
+	 * @var array of avalable options
+	 */
+	private static $avalable_options = array(
 		self::LOG_DEFAULT,
 		self::LOG_SESSION,
 		self::LOG_SITE,
@@ -127,11 +155,20 @@ class Debug implements iSession
 		return $result;
 	}
 
+	/**
+	 * Retruns the current debugging status
+	 * @return boolean
+	 */
 	public static function isEnabled()
 	{
 		return self::$enabled;
 	}
 
+	/**
+	 * Validates options with the list of available options
+	 * @param sting $option
+	 * @return boolean
+	 */
 	private static function validateOption($option)
 	{
 		if(in_array($option, self::$avalable_options) === FALSE)
@@ -140,11 +177,35 @@ class Debug implements iSession
 			return TRUE;
 	}
 
+	/**
+	 * Validates the modes with the available modes
+	 * @param string $mode
+	 * @return boolean
+	 */
+	private static function validateMode($mode)
+	{
+		if(in_array($mode, array(self::MODE_ADVANCED, self::MODE_CLI, self::MODE_SIMPLE, self::MODE_STANDARD)) === FALSE)
+			return FALSE;
+		else
+			return TRUE;
+	}
+
+	/**
+	 * Returns the list of available options
+	 * @return array
+	 */
 	public static function getAvalableOptions()
 	{
 		return self::$avalable_options;
 	}
 
+	/**
+	 * Activates or disables a debugging option
+	 * @param string $option option to enable or disable
+	 * @param bool $enable status to set the option to
+	 * @throws Unknown option
+	 * @throws Invalid enable status
+	 */
 	public static function setOption($option, $enable = TRUE)
 	{
 		if(!self::$enabled) return;
@@ -157,6 +218,11 @@ class Debug implements iSession
 			throw new Exception ('Invalid enable value, must be boolean');
 	}
 
+	/**
+	 * checks if an option is enabled or not
+	 * @param string $option
+	 * @return bool status of the option
+	 */
 	public static function isOptionEnabled($option)
 	{
 		if(!self::$enabled) return FALSE;
@@ -165,16 +231,31 @@ class Debug implements iSession
 		else return FALSE;
 	}
 
+	/**
+	 * Enables Debugging
+	 */
 	public static function enable()
 	{
 		self::$enabled = TRUE;
 	}
 
+	/**
+	 * Disables Debugging
+	 */
 	public static function disable()
 	{
 		self::$enabled = FALSE;
 	}
 
+	/**
+	 * uses print_r to print the variable to the output imidatly if debugging
+	 * is enabled
+	 * A label can be specified as well as a mode to print the output with
+	 * @param mixed $var Variable to be printed
+	 * @param string $label Label to identify the output, defaults to 'Display'
+	 * @param string $mode Mode to use
+	 * @throws Unknown mode
+	 */
 	public static function print_r($var, $label = 'Display', $mode = NULL)
 	{
 		if(!self::$enabled) return;
@@ -202,6 +283,15 @@ class Debug implements iSession
 		}
 	}
 
+	/**
+	 * Logs a value to the Debug object to pe printed at the end of the session
+	 * The Log Option can be specified as well as a label.
+	 *
+	 * Will only log values if debugging and the specified option is enabled
+	 * @param mixed $value Value to log
+	 * @param string $log_option Log Option to log under
+	 * @param string $label Label to log the value under
+	 */
 	public static function log($value, $log_option = self::LOG_DEFAULT, $label = NULL)
 	{
 		if(!self::$enabled) return;
@@ -214,12 +304,26 @@ class Debug implements iSession
 			self::$data[$log_option][] = $value;
 	}
 
-
-	public static function getCallingFunction()
+	/**
+	 * Traverses the backtrace to find the first non Debug method call.
+	 * Optionaly can be given a number of over steps to skip.
+	 *
+	 * returns either the object and method, or just function name.
+	 * @param int $skip levels to skip after the debugging object has been detected.
+	 * @param bool $skip_debug If set to FALSE it will NOT skip the debugging object and just honor the $skip param
+	 * @return <type>
+	 */
+	public static function getCallingFunction($skip = 0, $skip_debug = TRUE)
 	{
+		//TODO
 		return 'Obj:method';
 	}
 
+	/**
+	 * Will print out the debugging information stored in the debug class when enabled
+	 * as well as printing the enabled options outputs
+	 * @param boolean $overide skips the douple print prevention
+	 */
 	public static function printDebuggingInfo($overide = FALSE)
 	{
 		if(!self::$enabled || (self::$debug_printed && !$overide))

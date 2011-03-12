@@ -1,10 +1,31 @@
 <?php
 class Session implements iSession
 {
+	/**
+	 *
+	 * @var uInt Session id in the database
+	 */
 	private static $id;
+	/**
+	 * User who has logged into the session, 0 if no user has logged into this session yet
+	 * This should never be changed once a user logs in, should create a new session
+	 * @var uInt user_id
+	 */
 	private static $user_id;
+	/**
+	 *
+	 * @var uInt Number of pages viewed in the session
+	 */
 	private static $session_page_number;
+	/**
+	 * Time stamp of when the session was started
+	 * @var uInt timestamp
+	 */
 	private static $session_start_time;
+	/**
+	 * Timezone offset in minutes
+	 * @var integer Number of minutes offset from UTC
+	 */
 	private static $tz_offset;
 
 	/**
@@ -22,7 +43,15 @@ class Session implements iSession
 			);
 
 	// Saved directly in session with finalize
+	/**
+	 *
+	 * @var array data saved in the session for all the objects
+	 */
 	private static $data = array();
+	/**
+	 * Array of objects stored in the session and their versions
+	 * @var array indexed by object name contains object version
+	 */
 	private static $objects = array();
 
 	/*
@@ -34,7 +63,15 @@ class Session implements iSession
 	 */
 	private static $page_counted = FALSE;
 
+	/**
+	 * Key in the $_SESSION variable where the session object stores
+	 * it's data
+	 */
 	const SESSION_OBJECT_KEY = 'EMBER_SESSION';
+	/**
+	 * Object version, used to detect code changes that need the object
+	 * rebuilt in the session
+	 */
         const OBJECT_VERSION = 1;
 
 	/**
@@ -144,7 +181,7 @@ class Session implements iSession
 	/**
 	 * Recovers the data for the specified class
 	 * @param string $class class to be recovered from the session
-	 * @return array
+	 * @return array|Bool
 	 */
 	public static function getObject($class)
 	{
@@ -152,17 +189,18 @@ class Session implements iSession
 		if(!isset(self::$objects[$class]))
 		{
 			Debug::log('Object not in session: '.$class, Debug::LOG_SESSION);
-			return array();
+			return FALSE;
 		}
 
 		if($class::OBJECT_VERSION != self::$objects[$class])
 		{
 			Debug::log('Version changed: '.$class, Debug::LOG_SESSION);
 			unset(self::$objects[$class]);
-			return array();
+			return FALSE;
 		}
 		else
 		{
+			//This will only work for classes loaded AFTER Debug is loaded
 			Debug::log('Object in session: '.$class, Debug::LOG_SESSION);
 			return self::$data[$class];
 		}
