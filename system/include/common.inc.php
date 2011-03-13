@@ -20,7 +20,8 @@
 			break;
 		case 'cli':
 //TODO: make this generic
-			ini_set('include_path', '.:/var/www/ember/system/include:/var/www/ember/system:/var/www/ember/system/lib:/usr/share/php:/usr/share/pear');
+			$inital_path = ini_get('include_path');
+			ini_set('include_path', '/var/www/ember/system/include:/var/www/ember/system:/var/www/ember/system/lib:'.$inital_path);
 			define('SESSION_TYPE', 'cli');
 			$_SERVER = array();
 //TODO: make this generic
@@ -59,10 +60,27 @@
 			fwrite($error_log, print_r($_SERVER, true));
                         fwrite($error_log, "\nERROR END\n\n\n");
                         fclose($error_log);
-//TODO: use Debug here
-			echo '<pre>';
-			print_r($exception);
-			echo '</pre>';
+
+			if(class_exists('Debug', FALSE))
+				Debug::print_r($exception, 'Error');
+			else
+			{
+				//TODO: Security risk here because the uncaught error could be sensitive info?
+				switch(SESSION_TYPE)
+				{
+					case 'cli':
+						$seperator_start = '********************'.PHP_EOL;
+						$seperator_end = '********************'.PHP_EOL;
+						break;
+					case 'web':
+						$seperator_start= '<pre>';
+						$seperator_end= '</pre>';
+						break;
+				}
+				echo $seperator_start;
+				print_r($exception);
+				echo $seperator_end;
+			}
 		} catch( Exception $e )
 		{}
 
