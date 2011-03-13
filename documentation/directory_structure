@@ -6,9 +6,9 @@
 /ember/system/lib/Smarty
 ...
 /ember/system/class
-/ember/system/modules
-/ember/system/modules/functions or plugins
-/ember/system/modules/templates
+/ember/system/plugins
+/ember/system/plugins/modules
+/ember/system/plugins/templates
 /ember/system/smarty/
 /ember/system/smarty/plugins
 /ember/system/smarty/sysplugins
@@ -32,22 +32,22 @@
 
 -- starts empty place where users can load their module packages
 -- NOT part of Core, Just settings.inc.php defines where each of this DIRs are so users COULD rearange
-/ember/modules/plugins
-/ember/modules/plugins/mod_package_name
-/ember/modules/templates
-/ember/modules/templates/mod_package_name
-/ember/modules/schema
-/ember/modules/schema/mod_package_name
-/ember/modules/tests
-/ember/modules/tests/mod_package_name
-/ember/modules/class
-/ember/modules/class/mod_package_name
-/ember/modules/config
-/ember/modules/config/mod_package_name
-/ember/modules/scripts
-/ember/modules/scripts/mod_package_name
-/ember/modules/docs
-/ember/modules/docs/mod_package_name
+/ember/plugins/modules
+/ember/plugins/modules/plugin_package_name
+/ember/plugins/templates
+/ember/plugins/templates/plugin_package_name
+/ember/plugins/schema
+/ember/plugins/schema/plugin_package_name
+/ember/plugins/tests
+/ember/plugins/tests/plugin_package_name
+/ember/plugins/class
+/ember/plugins/class/plugin_package_name
+/ember/plugins/config
+/ember/plugins/config/plugin_package_name
+/ember/plugins/scripts
+/ember/plugins/scripts/plugin_package_name
+/ember/plugins/docs
+/ember/plugins/docs/plugin_package_name
 
 -- site's directories
 -- NOT part of Core, Layout is (script in core would add new sites)
