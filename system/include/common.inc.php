@@ -101,7 +101,10 @@
 	
 	//INIT DB
 	//INIT Cache
-	//INIT Site
+
+	Site::init();
+
+	//INIT Log
 	//INIT Smarty
 	//INIT Permissions
 	//INIT User

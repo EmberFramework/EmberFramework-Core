@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : site.xml
+    Created on : March 12, 2011, 6:55 PM
+    Author     : paul
+    Description:
+        Define the site confiuration, specify if site configuration should come from this file
+	or from the database
+-->
+
+<siteConfig mode='xml'>
+	<domains>
+		<domain host='emberframework.com' wildcard='false' site_name='dev' status='active' type='primary'/>
+		<domain host='test.emberframework.com' wildcard='false' site_name='dev' status='disabled' type='alias'/>
+		<domain host='build.emberframework.com' wildcard='true' site_name='build' status='active' type='primary'/>
+	</domains>
+	<site site_name='dev' site_id='1' theme='' >
+		<vars>
+			<setting name='test_value'>3</setting>
+			<data name='test_name'>Dev Site</data>
+		</vars>
+	</site>
+	<site site_name='build' site_id='2' theme='test'>
+		<vars/>
+	</site>
+	<vars>
+		<setting name='test_value'>9</setting>
+		<setting name='default_test_value'>12</setting>
+		<data name='test_global_name'>Global Site</data>
+	</vars>
+</siteConfig>

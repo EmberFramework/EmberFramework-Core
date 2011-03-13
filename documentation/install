@@ -10,3 +10,6 @@ Start apache
 Apache will hit any file in webroot, it defaults to index.php
 
 
+Sites:
+
+if the database is not to be used for the site configuration, put a site.xml file into the config directory in system
