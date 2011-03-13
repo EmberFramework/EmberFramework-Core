@@ -87,9 +87,16 @@ class Site implements iSession
 
 		if($new)
 		{
-
+			switch(SESSION_TYPE)
+			{
+				case 'web':
+					self::loadSite();
+					break;
+				case 'cli':
 //TODO: make this work for CLI mode.
-			self::loadSite();
+				default:
+					break;
+			}
 
 			Session::register(get_class());
 		}

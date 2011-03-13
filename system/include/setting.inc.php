@@ -8,12 +8,7 @@
 	define('CSRF_FIELD', 'csrf_key');
 
 	// EXCEPTION HANDLER
-	if(isset($exception_log_file))
-	{
-		define('EXCEPTION_LOG_FILE', $exception_log_file);
-		unset($exception_log_file);
-	}
-	else
+	if(!defined('EXCEPTION_LOG_FILE'))
 		define('EXCEPTION_LOG_FILE', LOG_PATH.'exception-log');
 
 	// DOC ROOT
