@@ -7,13 +7,13 @@ Smarty SysPlugins
 
 - Used to override parts of smarty not in the base class
 
-System Modules
+System Plugins
 
 - Smarty Functions
 - Have additional processing involved to handle variable scoping
 - Also have prosessing for Debuging and paramater manipulation
 - templates live in the templates dir
-- Functions live in the plugins  folder
+- Functions live in the modules folder
 
 System Config
 
@@ -48,20 +48,20 @@ Themes
 - files will dictate defaults to be set up (think vars)
 - will also list the required modules that need to be installed to run the theme
 
-Modules? rename?
+Plugins
 
-- Modules are broken into folders for each plugin
-- Smarty functions are prefixed with module name
-- Templates stored in module name folder
-- Schema stored in same format as system schema in module name folders
-- all schema elements are prefixed with module name
-- module names should be alphanumeric? (no spaces)
+- Plugins are broken into folders for each plugin
+- Smarty functions (modules) are prefixed with plugin name
+- Templates stored in plugin name folder
+- Schema stored in same format as system schema in plugin name folders
+- all schema elements are prefixed with plugin name
+- plugins names should be alphanumeric? (no spaces)
 - tests contain unittests
-- classes are in folders named like the modules (classes should be modulename_classname.class.php)
-- plugins contain the smarty functions that drive the plugins of the modules (i know i'm breaking from nameing we can talk)
+- classes are in folders named like the plugins (classes should be pluginname_classname.class.php)
+- plugins contain the smarty functions that drive the modules of the plugin
 - config dir for each module XML?
 - config contains file lists to know what files were added?
-- config contains required modules that this module needs
+- config contains required plugins that this module needs
 
 Sites
 
