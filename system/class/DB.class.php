@@ -21,44 +21,86 @@
 		static private $default_conn = NULL;
 		static private $tz = NULL;
 
+		/**
+		 * @param SQL $sql
+		 * @param String|NULL $db (Optional; defaults to NULL)
+		 * @return Array|NULL
+		 */
 		static public function getCol( $sql, $db=NULL )
 		{
 			return DB::doDBcall( 'getCol', $sql, $db );
 		}
-		
+
+		/**
+		 * @param SQL $sql
+		 * @param uInt $col
+		 * @param String|NULL $db (Optional; defaults to NULL)
+		 * @return Array|NULL
+		 */
 		static public function getColN( $sql, $col, $db=NULL )
 		{
 //TODO: getColN()
 		}
 
+		/**
+		 * @param SQL $sql
+		 * @param String|NULL $db (Optional; defaults to NULL)
+		 * @return Array|NULL
+		 */
 		static public function getAll( $sql, $db=NULL )
 		{
 			return DB::doDBcall( 'getAll', $sql, $db );
 		}
 
+		/**
+		 * @param SQL $sql
+		 * @param String|NULL $db (Optional; defaults to NULL)
+		 * @return Array|NULL
+		 */
 		static public function getRow( $sql, $db=NULL )
 		{
 			return DB::doDBcall( 'getRow', $sql, $db );
 		}
 
+		/**
+		 * @param SQL $sql
+		 * @param String|NULL $db (Optional; defaults to NULL)
+		 * @return Array|NULL
+		 */
 		static public function getAssoc( $sql, $db=NULL )
 		{
 			return DB::doDBcall( 'getAssoc', $sql, $db );
 		}
 
+		/**
+		 * @param SQL $sql
+		 * @param String|NULL $db (Optional; defaults to NULL)
+		 * @return Mixed
+		 */
 		static public function getOne( $sql, $db=NULL )
 		{
 			return DB::doDBcall( 'getOne', $sql, $db );
 		}
 
+		/**
+		 * @param SQL $sql
+		 * @param String|NULL $db (Optional; defaults to NULL)
+		 * @return Mixed
+		 */
 		static public function query( $sql, $db=NULL )
 		{
 			return DB::doDBcall( 'query', $sql, $db );
 		}
 
+		/**
+		 * @param SQL $sql
+		 * @param String|NULL $db (Optional; defaults to NULL)
+		 * @return Mixed
+		 */
 		static public function lowPriorityQuery( $sql, $db=NULL )
 		{
 //TODO: DB::lowPriorityQuery()
+			return DB::doDBcall( 'query', $sql, $db );
 		}
 
 		/**
@@ -76,9 +118,65 @@
 			return DB::$connections[$db][DB::MODE_READWRITE]->getLastInsertID();
 		}
 
-		static public function doDBcall( $method, $sql, $db )
+		/**
+		 * @param String $method
+		 * @param SQL $sql
+		 * @param String|NULL $db
+		 * @return Mixed
+		 */
+		static private function doDBcall( $method, $sql, $db )
 		{
-//TODO: DB::doDBcall()
+			if( $db === NULL )
+			{
+				if( $sql->getDatabase() === NULL ) $db = 'default';
+				else $db = $sql->getDatabase();
+			}
+
+			$sql->setDatabase( DB::$connections[$db]['name'] );
+			$sql->setMode( $mode );
+
+			if( Debug::isEnabled() )
+			{
+				$qid = Debug::registerQuery( $sql, $db );
+				$qt_start = microtime(TRUE);
+			}
+
+			switch( $mode )
+			{
+				case DB::MODE_AUTO:
+//TODO: Implement MODE_AUTO choosing instead of short circuiting to R/W connector
+//TODO: Report for debugging which connector was actually chosen when we're doing AUTO
+				case DB::MODE_READWRITE:
+					if( !isset(DB::$connections[$db][DB::MODE_READWRITE]) )
+						throw new Exception(
+							str_replace( '%name%', $db,
+							str_replace( '%mode%', $mode, DB::ERR_NO_SUCH_CONNECTION )));
+
+					$conn = DB::$connections[$db][DB::MODE_READWRITE];
+					break;
+				case DB::MODE_READONLY:
+					$conn_number = DB::pickRO($db);
+					if( !isset(DB::$connections[$db][DB::MODE_READONLY]['con'][$conn_number]) )
+						throw new Exception(
+							str_replace( '%name%', $db,
+							str_replace( '%mode%', $mode, DB::ERR_NO_SUCH_CONNECTION )));
+
+					$conn = DB::$connections[$db][DB::MODE_READONLY]['con'][$conn_number];
+					break;
+				default:
+					throw new Exception( "unsupported mode" );
+			}
+
+			$result = $conn->$method($sql);
+
+			if( Debug::isEnabled() )
+			{
+				$qt_end = microtime(TRUE);
+				$query_time = round( $qt_end - $qt_start, 5 );
+				Debug::registerQueryTime( $qid, $query_time );
+			}
+
+			return $result;
 		}
 
 		/**
