@@ -1,18 +1,34 @@
 <?php
 
+	/**
+	 * Ember DBConnector
+	 * (PDO wrapper)
+	 * @version 1.0
+	 * @package Ember
+	 * @subpackage DB
+	 * @author Matt Pelmear <mjpelmear@gmail.com>
+	 */
 	class DBConnector
 	{
 		const ERR_CANNOT_CONNECT		= 'Cannot connect to DB';
 		const ERR_EXPECTED_SQL_OBJ		= 'Expected object of type SQL';
+		const ERR_UNSUPPORTED_DRIVER	= 'Unsupported database driver: "%driver%"';
 
+		const QE_QUERY					= 'query';
+		const QE_EXEC					= 'exec';
 
-		public $pdo;
+		private $pdo;
 		private $tz;
 		private $dsn;
 		private $user;
 		private $pass;
 		private $connected = FALSE;
 
+		/**
+		 * @param String $dsn
+		 * @param String $user (Optional; defaults to empty string)
+		 * @param String $pass (Optional; defaults to empty string)
+		 */
 		public function __construct( $dsn, $user = '', $pass = '' )
 		{
 			$this->connected = FALSE;
@@ -22,19 +38,24 @@
 			$this->pass = $pass;
 		}
 
+		/**
+		 * Internally connects to db server when necessary
+		 */
 		private function con()
 		{
-			if( !$this->connected )
-				$this->connect();
+			if( !$this->connected ) $this->connect();
 		}
 
+		/**
+		 * Publicly accessible method to force connection to db server
+		 */
 		public function connect()
 		{
 			if( $this->connected ) return TRUE;
 
 			try {
 				// Without this check, PDO seems to lose 216 bytes or so
-				// of memory on failure of connect... -mpelmear
+				// of memory on failure to connect to an empty string connector... -mpelmear
 				if( $this->dsn == '' )
 					throw new Exception( DBConnector::ERR_CANNOT_CONNECT );
 				$this->pdo = new PDO( $this->dsn, $this->user, $this->pass );
@@ -48,6 +69,9 @@
 			return TRUE;
 		}
 
+		/**
+		 * Publicly accessible method to force disconnection from db server
+		 */
 		public function disconnect()
 		{
 			$this->pdo = NULL;
@@ -67,18 +91,38 @@
 
 		/**
 		 * @param SQL $sql
+		 * @return Array
+		 * @throws PDOException
+		 */
+		public function getCol( $sql )
+		{
+			self::checkSQLobject( $sql );
+			$this->con();
+			$q = $this->_query( $sql );
+
+			$ret = $q->fetchAll(PDO::FETCH_COLUMN, 0);
+			if( $sql->willCalcFoundRows() && $q->nextRowset() )
+				$sql->setFoundRowsCallback( $q->fetchColumn() );
+
+			return $ret;
+		}
+
+		/**
+		 * @param SQL $sql
 		 * @param uInt $col (optional, defaults to 0)
 		 * @return Array
 		 * @throws PDOException
 		 */
-		public function getCol( $sql, $col = 0 )
+		public function getColN( $sql, $col=0 )
 		{
+			self::checkSQLobject( $sql );
 			$this->con();
 			$q = $this->_query( $sql );
 
 			$ret = $q->fetchAll(PDO::FETCH_COLUMN, $col);
-			if ($sql->willCalcFoundRows() && $q->nextRowset())
-				$sql->setFoundRowsCallback($q->fetchColumn());
+			if( $sql->willCalcFoundRows() && $q->nextRowset() )
+				$sql->setFoundRowsCallback( $q->fetchColumn() );
+
 			return $ret;
 		}
 
@@ -89,12 +133,14 @@
 		 */
 		public function getAll( $sql )
 		{
+			self::checkSQLobject( $sql );
 			$this->con();
 			$s = $this->_query( $sql );
 
 			$ret = $s->fetchAll(PDO::FETCH_ASSOC);
-			if ($sql->willCalcFoundRows() && $s->nextRowset())
-				$sql->setFoundRowsCallback($s->fetchColumn());
+			if( $sql->willCalcFoundRows() && $s->nextRowset() )
+				$sql->setFoundRowsCallback( $s->fetchColumn() );
+
 			return $ret;
 		}
 
@@ -105,12 +151,14 @@
 		 */
 		public function getRow( $sql )
 		{
+			self::checkSQLobject( $sql );
 			$this->con();
 			$q = $this->_query( $sql );
 
 			$ret = $q->fetch(PDO::FETCH_ASSOC);
-			if ($sql->willCalcFoundRows() && $q->nextRowset())
-				$sql->setFoundRowsCallback($q->fetchColumn());
+			if( $sql->willCalcFoundRows() && $q->nextRowset() )
+				$sql->setFoundRowsCallback( $q->fetchColumn() );
+
 			return $ret;
 		}
 
@@ -126,6 +174,7 @@
 		 */
 		public function getAssoc( $sql )
 		{
+			self::checkSQLobject( $sql );
 			$this->con();
 			$sth = $this->_query( $sql );
 
@@ -136,16 +185,17 @@
 
 			if( $sth->columnCount() == 2 )
 			{
-				while ($row = $sth->fetch(PDO::FETCH_ASSOC))
+				while( $row = $sth->fetch(PDO::FETCH_ASSOC) )
 					$rs[array_shift($row)] = array_shift($row);
 			}
 			else
 			{
-				while ($row = $sth->fetch(PDO::FETCH_ASSOC))
+				while( $row = $sth->fetch(PDO::FETCH_ASSOC) )
 					$rs[array_shift($row)] = $row;
 			}
-			if ($sql->willCalcFoundRows() && $sth->nextRowset())
-				$sql->setFoundRowsCallback($sth->fetchColumn());
+			if( $sql->willCalcFoundRows() && $sth->nextRowset() )
+				$sql->setFoundRowsCallback( $sth->fetchColumn() );
+
 			return $rs;
 		}
 
@@ -157,12 +207,14 @@
 		 */
 		public function getOne( $sql )
 		{
+			self::checkSQLobject( $sql );
 			$this->con();
 			$sth = $this->_query( $sql );
 
 			$ret = $sth ? $sth->fetchColumn() : NULL;
-			if ($sql->willCalcFoundRows() && $sth->nextRowset())
-				$sql->setFoundRowsCallback($sth->fetchColumn());
+			if( $sql->willCalcFoundRows() && $sth->nextRowset() )
+				$sql->setFoundRowsCallback( $sth->fetchColumn() );
+
 			return $ret;
 		}
 
@@ -176,6 +228,7 @@
 		 */
 		public function query( $sql )
 		{
+			self::checkSQLobject( $sql );
 			$this->con();
 
 			$q = $sql->getSQL();
@@ -197,6 +250,7 @@
 		 */
 		public function exec( $sql )
 		{
+			self::checkSQLobject( $sql );
 			$this->con();
 			return $this->_exec( $sql );
 		}
@@ -204,13 +258,13 @@
 		/**
 		 * Internally execute various types of query calls.
 		 * @param SQL $sql
-		 * @param String $query_or_exec (either 'exec' or 'query')
+		 * @param String $query_or_exec (Optional; Defaults to QE_QUERY. Either DBConnector::QE_EXEC or DBConnector::QE_QUERY)
 		 */
-		private function _query( $sql, $query_or_exec='query' )
+		private function _query( $sql, $query_or_exec = self::QE_QUERY )
 		{
 			$bind_style_params = $this->prepareBindStyleParams();
 
-			if( $query_or_exec == 'exec' )
+			if( $query_or_exec == DBConnector::QE_EXEC )
 				$r = $this->pdo->exec( $sql->getSQL( $bind_style_params ) );
 			else
 				$r = $this->pdo->query( $sql->getSQL( $bind_style_params ) );
@@ -226,7 +280,7 @@
 					$this->disconnect();
 					$this->connect();
 
-					if( $query_or_exec == 'exec' )
+					if( $query_or_exec == DBConnector::QE_EXEC )
 						$r = $this->pdo->exec( $sql->getSQL( $bind_style_params ) );
 					else
 						$r = $this->pdo->query( $sql->getSQL( $bind_style_params ) );
@@ -243,25 +297,29 @@
 
 		private function _exec( $sql )
 		{
-			return $this->_query( $sql, 'exec' );
+			return $this->_query( $sql, DBConnector::QE_EXEC );
 		}
 
+		/**
+		 * Returns parameters suitable to be passed to SQL class
+		 * so that binding is appropriate for the connector in use.
+		 * @return Array
+		 */
 		private function prepareBindStyleParams()
 		{
 			$bind_style_params = array();
-			switch( $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) )
+			$driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+			switch( $driver )
 			{
 				case 'mysql':
-					$bind_style_params = array( SQL::PARAM_ESCAPE_STYLE => SQL::ESCAPE_STYLE_MYSQL );
+					return array( SQL::PARAM_ESCAPE_STYLE => SQL::ESCAPE_STYLE_MYSQL );
 					break;
 				case 'sqlite':
-					$bind_style_params = array( SQL::PARAM_ESCAPE_STYLE => SQL::ESCAPE_STYLE_SQLITE );
+					return array( SQL::PARAM_ESCAPE_STYLE => SQL::ESCAPE_STYLE_SQLITE );
 					break;
 				default:
-					throw new Exception( 'Unsupported database driver: ' . $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) );
+					throw new Exception( str_replace( '%driver%', $driver, DBConnector::ERR_UNSUPPORTED_DRIVER ) );
 			}
-
-			return $bind_style_params;
 		}
 
 		/**
@@ -283,9 +341,8 @@
 		 */
 		private function throwError()
 		{
-//TODO: Probably don't need to htmlspecialchars here... maybe that should happen on the UI layer?
 			$error = $this->pdo->errorInfo();
-			throw new PDOException($error[0].' ('.$error[1].'): '.htmlspecialchars($error[2]));
+			throw new PDOException( $error[0].' ('.$error[1].'): '.$error[2] );
 		}
 
 		/**
