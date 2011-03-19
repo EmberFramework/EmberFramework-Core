@@ -19,6 +19,9 @@
 	define('CODE_BASE_ROOT', implode(DS, $parts).DS);
 	unset($parts);
 
+	define('THEMES_DIR', CODE_BASE_ROOT.'themes');
+	define('SITES_DIR', CODE_BASE_ROOT.'sites');
+
 	define('SMARTY_SYSPLUGINS_OVERLOAD_DIR', CODE_BASE_ROOT.'system'.DS.'smarty'.DS.'sysplugins'.DS);
 
 	define('TEMP_SPACE', '/tmp/');

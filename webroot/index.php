@@ -1,5 +1,10 @@
 <?php
-	echo 'index.php';
+
+	FileDispatcher::init();
+
+	$smarty->displayURI();
+
+	//$smarty->displayURILegacy();
 
 	Session::finalize();
 

@@ -24,7 +24,7 @@ class Site implements iSession
 	 * to control the users experience.
 	 * @var array
 	 */
-	private static $settings;
+	private static $setting;
 
 	/**
 	 * Array of data field for the site. Generaly text to display to the user
@@ -40,14 +40,20 @@ class Site implements iSession
 		'id' => TRUE,
 		'short_name' => TRUE,
 		'theme' => FALSE,
-		'settings' => TRUE,
+		'setting' => TRUE,
 		'data' => TRUE,
 		);
 
-	const OBJECT_VERSION = 0;
+	/**
+	 * Inicates if the Site::init() has been called.
+	 * @var boolean
+	 */
+	private static $setup = FALSE;
+
+	const OBJECT_VERSION = 1;
 
 	//The two constants values must match the static variables names
-	const VAR_TYPE_SETTING = 'settings';
+	const VAR_TYPE_SETTING = 'setting';
 	const VAR_TYPE_DATA = 'data';
 
 	/**
@@ -57,6 +63,9 @@ class Site implements iSession
 	 */
 	public static function init()
 	{
+		if(self::$setup)
+			return;
+		
 		$data = Session::getObject(get_class());
 
 		$new = TRUE;
@@ -101,6 +110,7 @@ class Site implements iSession
 			Session::register(get_class());
 		}
 
+		self::$setup = TRUE;
 		return !$new;
 
 	}
@@ -116,6 +126,15 @@ class Site implements iSession
 			$result[$var] = self::$$var;
 
 		return $result;
+	}
+
+	/**
+	 * Indicates if the Site has been setup
+	 * @return boolean
+	 */
+	public static function isSetup()
+	{
+		return self::$setup;
 	}
 
 	/**
@@ -186,7 +205,7 @@ class Site implements iSession
 					}
 				}
 
-				if(!isset($site_name))
+				if(!isset($site_name) || $site_name == '')
 					throw new exception('Domain Not Found');
 
 				Debug::log($site_name, Debug::LOG_SITE, 'Site Name');
@@ -209,6 +228,8 @@ class Site implements iSession
 
 				if(((int)$id) == 0)
 					throw new exception('Invalid id, not an integer or 0');
+
+//TODO: validate the id with the db, should also have the short name there to double check
 
 				self::$id = $id;
 				if($theme != '')
@@ -244,6 +265,16 @@ class Site implements iSession
 				self::loadVarsDB();
 				break;
 		}
+
+		//TODO: validate the theme, short_name with the file system
+		if(isset(self::$theme) && self::$theme != '')
+		{
+			if(!is_dir(THEMES_DIR.DS.self::$theme))
+				throw new exception('Invalid theme name: '.self::$theme.', no such path');
+		}
+
+		if(!is_dir(SITES_DIR.DS.self::$short_name))
+			throw new exception('Invalid site name: '.self::$short_name.', no such path');
 	}
 
 	/**
@@ -261,7 +292,7 @@ class Site implements iSession
 					$name = $node->getAttribute('name');
 					if($name == '')
 						break;
-					self::$settings[$name] = $node->nodeValue;
+					self::$setting[$name] = $node->nodeValue;
 					break;
 				case self::VAR_TYPE_DATA:
 					$name = $node->getAttribute('name');
@@ -281,6 +312,27 @@ class Site implements iSession
 	private static function loadVarsDB($global = FALSE)
 	{
 //TODO: Loads the vars from the DATABASE instad of xml
+	}
+
+	/**
+	 * Returns the site's short name, used to locate the site's root
+	 * @return string
+	 */
+	public static function getSiteName()
+	{
+		return self::$short_name;
+	}
+
+	/**
+	 * Returns the site's theme, or null if no theme has been set
+	 * @return string|null
+	 */
+	public static function getTheme()
+	{
+		if(isset(self::$theme) && self::$theme != '')
+			return self::$theme;
+		else
+			return NULL;
 	}
 
 	/**
@@ -339,6 +391,20 @@ class Site implements iSession
 			Debug::log($type . ':'.$key.' requested - not set', Debug::LOG_SITE);
 			return NULL;
 		}
+	}
+
+	/**
+	 * Assigns the data and setting arrays into the SmartyPlus object.
+	 */
+	public static function initSmarty()
+	{
+		$data = array();
+		$data['data'] = self::$data;
+		$data['setting'] = self::$setting;
+
+		$smarty = SmartyPlus::getSmarty();
+
+		$smarty->assignGlobal('site', $data);
 	}
 
 }

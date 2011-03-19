@@ -9,7 +9,34 @@ Start apache
 
 Apache will hit any file in webroot, it defaults to index.php
 
+Directory structure:
+
+After you check out the code you wll need to add a few directories to the code root.
+
+- site
+- theme (optional if you want to use themes)
 
 Sites:
 
 if the database is not to be used for the site configuration, put a site.xml file into the config directory in system
+
+In the sites DIR you will need to create a directory with the 'short_name' of the site you configured in the site.xml file.
+In your sites directory you will need to add the following directories:
+- config
+- containers
+- css
+- js
+- media
+- smarty
+- smarty/cache (needs to be writable by apache)
+- smarty/config
+- smarty/compiled (needs to be writable by apache)
+- templates
+
+the templates directory follows the same pattern as the site directory
+
+Librarys
+
+Smarty 3.0.7 is needed for template rendering.
+
+Download the source from smarty.net and symlink or copy the 'lib' directory in smarty to a directory called system/lib/Smarty.

@@ -15,6 +15,16 @@
 	switch(php_sapi_name())
 	{
 		case 'apache2handler':
+			 $garbage_timeout = 60 * 60 * 4; // in seconds (4 hours)
+
+                        ini_set('session.gc_maxlifetime', $garbage_timeout);
+
+                        $sessdir = DIRECTORY_SEPARATOR.'tmp'.DIRECTORY_SEPARATOR.'ember';
+                        if (!is_dir($sessdir))
+                                mkdir($sessdir, 0777);
+
+                        session_save_path($sessdir);
+
 			session_start();
 			define('SESSION_TYPE', 'web');
 			break;
@@ -63,24 +73,6 @@
 
 			if(class_exists('Debug', FALSE))
 				Debug::print_r($exception, 'Error');
-			else
-			{
-				//TODO: Security risk here because the uncaught error could be sensitive info?
-				switch(SESSION_TYPE)
-				{
-					case 'cli':
-						$seperator_start = '********************'.PHP_EOL;
-						$seperator_end = '********************'.PHP_EOL;
-						break;
-					case 'web':
-						$seperator_start= '<pre>';
-						$seperator_end= '</pre>';
-						break;
-				}
-				echo $seperator_start;
-				print_r($exception);
-				echo $seperator_end;
-			}
 		} catch( Exception $e )
 		{}
 
@@ -109,6 +101,53 @@
 			return FALSE;
 	}
 
+	//Used by FileDispatcher
+	/**
+	 * Merges any number of arrays / parameters recursively, replacing 
+	 * entries with string keys with values from latter arrays. 
+	 * If the entry or the next value to be assigned is an array, then it 
+	 * automagically treats both arguments as an array.
+	 * Numeric entries are appended, not replaced, but only if they are 
+	 * unique
+	 *
+	 * calling: result = array_merge_recursive_distinct(a1, a2, ... aN)
+	 *
+	 * From:
+	 * http://php.net/manual/en/function.array-merge-recursive.php
+	 */
+
+	function array_merge_recursive_distinct ()
+	{
+		$arrays = func_get_args();
+		$base = array_shift($arrays);
+		if(!is_array($base)) $base = empty($base) ? array() : array($base);
+		foreach($arrays as $append)
+		{
+			if(!is_array($append)) $append = array($append);
+			foreach($append as $key => $value)
+			{
+				if(!array_key_exists($key, $base) and !is_numeric($key))
+				{
+					$base[$key] = $append[$key];
+					continue;
+				}
+				if(is_array($value) or is_array($base[$key]))
+				{
+					$base[$key] = array_merge_recursive_distinct($base[$key], $append[$key]);
+				}
+				else if(is_numeric($key))
+				{
+					if(!in_array($value, $base)) $base[] = $value;
+				}
+				else
+				{
+					$base[$key] = $value;
+				}
+			}
+		}
+		return $base;
+	}
+
 //TODO: should be using this, play nice with smarty
 	//spl_autoload_register('emberAutoload', true, true);
 
@@ -122,9 +161,14 @@
 
 	Site::init();
 
+	if(SESSION_TYPE == 'web')
+	{
+		global $smarty;
+		$smarty = SmartyPlus::init();
+
+		Site::initSmarty();
+	}
+
 	//INIT Log
-	//INIT Smarty
 	//INIT Permissions
 	//INIT User
-
-	Session::finalize();

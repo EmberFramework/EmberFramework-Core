@@ -53,6 +53,7 @@ class Debug implements iSession
 	const LOG_USER = 'LOG_USER';
 	const LOG_PERMISSION = 'LOG_PERMISSION';
 	const LOG_SMARTY = 'LOG_SMARTY';
+	const LOG_FILEDISPATCHER = 'LOG_FILEDISPATCHER';
 
 	const LOG_LOADED_FILES = 'LOG_LOADED_FILES';
 	const LOG_GLOBALS = 'LOG_GLOBALS';
@@ -76,6 +77,7 @@ class Debug implements iSession
 		self::LOG_USER,
 		self::LOG_PERMISSION,
 		self::LOG_SMARTY,
+		self::LOG_FILEDISPATCHER,
 		);
 
 	//Display modes
