@@ -13,6 +13,9 @@ class FileDispatcher
 	const FILETYPE_JS = "js";
 	const FILETYPE_MEDIA = "media";
 
+	const EMBER_PLUGIN_CORE = 'plugin_core';
+	const EMBER_PLUGIN = 'plugin_user';
+
 	/**
 	 * Sets up the FileDispatcher
 	 * Used to tell the FileDispatcher what type of file the current page load
@@ -43,7 +46,7 @@ class FileDispatcher
 
 		self::$type = $type;
 
-		self::$file = self::_getFilePath($type, NULL, TRUE);
+		self::$file = self::_getFilePath($type, $uri, TRUE);
 
 		if(self::$file === FALSE)
 		{
@@ -65,11 +68,63 @@ class FileDispatcher
 	 * @param string $type one of the FILETYPE constants in the FileDispatcher class
 	 * @param string $uri set if the inited uri is not the uri to display
 	 */
-	public static function displayFile($type, $uri = NULL)
+	public static function displayFile($file, $file_type, $cache_limit = NULL)
 	{
-		//TODO: validate type
-		//TODO: pipes files to output, used for JS, CSS and Media files
+		if(!is_file($file))
+			FileDispatcher::http404();
+		
+		if( $cache_limit === NULL )
+			$cache_limit = DEFAULT_CACHE_TIME;
 
+		$ifModifiedSince = isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ? $_SERVER['HTTP_IF_MODIFIED_SINCE'] : FALSE;
+		$mtime = filemtime( $file );
+
+		$FILETYPES_MIMETYPES = array(
+			self::FILETYPE_CSS => 'text/css',
+			self::FILETYPE_JS => 'application/x-javascript',
+			'gif' => 'image/gif',
+			'jpe' => 'image/jpeg',
+			'jpeg' => 'image/jpeg',
+			'jpg' => 'image/jpeg',
+			'png' => 'image/png',
+			'swf' => 'application/x-shockwave-flash',
+			'mov' => 'video/quicktime',
+			'doc' => 'application/msword',
+			'pdf' => 'application/pdf',
+			'zip' => 'application/zip',
+			'flv'=> 'flv-application/octet-stream',
+			'mp3'=> 'audio/mpeg',
+			'xml' => 'text/xml'
+		);
+
+		if( !array_key_exists( $file_type, $FILETYPES_MIMETYPES ) )
+			throw new Exception( 'Unknown FileType' );
+
+
+		// might want to consider checking HTTP protocol: $_SERVER['SERVER_PROTOCOL']
+		if( $ifModifiedSince && strtotime( $ifModifiedSince ) >= $mtime) {
+			header( 'HTTP/1.1 304 Not Modified' );
+			header( 'Cache-Control: max-age=' . $cache_limit . ', public' );
+			header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $mtime ) . ' GMT' );
+			header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $cache_limit ) . ' GMT' );
+			die();
+		}
+
+		header( 'HTTP/1.1 200 OK');
+		header( 'Date: ' . gmdate( 'D, d M Y H:i:s', $mtime ) . ' GMT' );
+		header( 'Server: ' . $_SERVER['SERVER_SOFTWARE'] ); // ex: Apache/2.2.4 (Fedora)
+		header( 'Pragma: ' );
+		header( 'Cache-Control: max-age=' . $cache_limit . ', public' );
+		header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + $cache_limit ) . ' GMT' );
+		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $mtime ) . ' GMT' );
+		header( 'Content-Length: ' . filesize($file) );
+		header( 'Content-type: ' . $FILETYPES_MIMETYPES[$file_type] );
+
+
+		ob_clean();
+		flush();
+		readfile($file);
+		die();
 	}
 
 	/**
@@ -171,6 +226,64 @@ class FileDispatcher
 	}
 
 	/**
+	 * Builds a list of all the plugins loaded in the system
+	 * @param string $type type of plugins to list, core_plugins, plugins or NULL for both
+	 * @return array
+	 */
+	private static function _getPluginList( $plugin_type = NULL )
+	{
+//TODO: Cache the results of this.
+		$search = array();
+		if(!isset($plugin_type))
+			$search = array(EMBER_CORE_PLUGIN_DIR, EMBER_PLUGIN_DIR);
+		elseif($plugin_type == self::EMBER_PLUGIN_CORE)
+			$search[] = EMBER_CORE_PLUGIN_DIR;
+		elseif($plugin_type == self::EMBER_PLUGIN)
+			$search[] = EMBER_PLUGIN_DIR;
+		else
+			throw new exception('Unknown plugin type');
+
+		$modules = array();
+		foreach($search as $dir)
+		{
+			$real_path = realpath($dir);
+			$nodes = scandir($real_path);
+
+			foreach($nodes as $node)
+			{
+				if(substr($node, 0, 1) == '.')
+					continue;
+				
+				if(is_dir($real_path.DS.$node))
+					$modules[$node] = TRUE;
+			}
+		}
+
+		return array_keys($modules);
+	}
+
+	/**
+	 * Builds a list of the modules and the files they contain of a particular type
+	 * @param array $file_type
+	 */
+	private static function _listModuleFiles($file_type)
+	{
+		$module_files = array(self::EMBER_PLUGIN_CORE, self::EMBER_PLUGIN);
+		foreach(array(self::EMBER_PLUGIN_CORE => EMBER_CORE_PLUGIN_DIR,
+		    self::EMBER_PLUGIN => EMBER_PLUGIN_DIR) as $type => $plug_path)
+		{
+			$plugins = self::_getPluginList($type);
+			foreach($plugins as $plugin)
+				$module_files[$type][$plugin] = self::scandirRecursive($plug_path.$plugin.DS.$file_type.DS);
+		}
+
+		return array_merge_recursive_distinct(
+				$module_files[self::EMBER_PLUGIN_CORE],
+				$module_files[self::EMBER_PLUGIN]);
+	}
+
+
+	/**
 	 * Builds the cache of the site and theme directories accounting for overloaded files.
 	 * Site::init() must be called before this can be called
 	 */
@@ -182,7 +295,12 @@ class FileDispatcher
 		if(!class_exists('Site', FALSE) || !Site::isSetup())
 				throw new exception('Site must be set up before SmartyPlus::initSite()');
 
-		$file_types = array(self::FILETYPE_CONTAINER, self::FILETYPE_CSS, self::FILETYPE_JS, self::FILETYPE_MEDIA, self::FILETYPE_TPL);
+		$file_types = array(
+		    self::FILETYPE_CONTAINER,
+		    self::FILETYPE_CSS,
+		    self::FILETYPE_JS,
+		    self::FILETYPE_MEDIA,
+		    self::FILETYPE_TPL);
 
 		$tree = array();
 
@@ -193,7 +311,25 @@ class FileDispatcher
 
 		foreach($file_types as $ft)
 		{
+			switch($ft)
+			{
+				case self::FILETYPE_JS:
+					$lib_tree = array();
+					$lib_tree['lib'] = self::scandirRecursive(JS_LIB_DIR);
+					$lib_tree['modules'] = self::_listModuleFiles(self::FILETYPE_JS);
+					break;
+				case self::FILETYPE_CSS:
+					$lib_tree = array();
+					$lib_tree['lib'] = self::scandirRecursive(CSS_LIB_DIR);
+					break;
+				default:
+					$lib_tree = NULL;
+					break;
+			}
+
 			$site_tree = self::scandirRecursive($site_dir.$ft);
+
+			$site_tree = array_merge_recursive_distinct($lib_tree, $site_tree);
 
 			if(isset($theme))
 			{
@@ -242,7 +378,7 @@ class FileDispatcher
 	 * Get function for the path_info cacluated by init()
 	 * @return string
 	 */
-	public static function getPathInor()
+	public static function getPathInfo()
 	{
 		return self::$path_info;
 	}
@@ -250,8 +386,10 @@ class FileDispatcher
 	/**
 	 * Issue 404 error
 	 */
-	public static function http404()
+	public static function http404($die = TRUE)
 	{
 		header("HTTP/1.0 404 Not Found");
+		if($die)
+			die;
 	}
 }

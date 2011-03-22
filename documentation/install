@@ -39,4 +39,4 @@ Librarys
 
 Smarty 3.0.7 is needed for template rendering.
 
-Download the source from smarty.net and symlink or copy the 'lib' directory in smarty to a directory called system/lib/Smarty.
+Download the source from smarty.net and symlink or copy the 'lib' directory in smarty to a directory called system/lib/php/Smarty.

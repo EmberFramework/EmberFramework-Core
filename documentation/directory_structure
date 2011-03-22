@@ -3,10 +3,14 @@
 /ember/system/
 /ember/system/include
 /ember/system/lib
-/ember/system/lib/Smarty
+/ember/system/lib/js
+/ember/system/lib/css
+/ember/system/lib/php
+/ember/system/lib/php/Smarty
 ...
 /ember/system/class
 /ember/system/plugins
+/ember/system/plugins/js
 /ember/system/plugins/modules
 /ember/system/plugins/templates
 /ember/system/smarty/
@@ -26,7 +30,6 @@
 /ember/themes/theme_name/media
 /ember/themes/theme_name/css
 /ember/themes/theme_name/js
-/ember/themes/theme_name/js-lib
 /ember/themes/theme_name/config
 
 
@@ -48,6 +51,7 @@
 /ember/plugins/scripts/plugin_package_name
 /ember/plugins/docs
 /ember/plugins/docs/plugin_package_name
+/ember/plugins/js
 
 -- site's directories
 -- NOT part of Core, Layout is (script in core would add new sites)

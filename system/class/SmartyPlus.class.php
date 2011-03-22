@@ -89,6 +89,8 @@
 
 		private static $ember_plugins_dir = array();
 
+		private static $ember_plugin_modules = array();
+
 		/**
 		 * Sets up the SmartyPlus enviroment, must set up the Site before this call
 		 * @global SmartyPlus $smarty
@@ -103,9 +105,10 @@
 
 			$smarty = new SmartyPlus();
 
-			$smarty->addPluginsDir(CODE_BASE_ROOT.'system'.DS.'smarty'.DS.'plugins');
+			$smarty->addPluginsDir(SMARY_PLUGINS_OVERLOAD_DIR);
 
-			self::$ember_plugins_dir[] = CODE_BASE_ROOT.'system'.DS.'plubins'.DS;
+			self::$ember_plugins_dir[] = EMBER_PLUGIN_DIR;
+			self::$ember_plugins_dir[] = EMBER_CORE_PLUGIN_DIR;
 
 			self::initSite();
 
@@ -254,16 +257,20 @@
 
 			foreach(self::$ember_plugins_dir as $dir)
 			{
-				if(file_exists($dir.$mod_parts[0].DS.$mod_parts[1].'.tpl'))
-					$template = $dir.$mod_parts[0].DS.$mod_parts[1].'.tpl';
+				$file = $dir.$mod_parts[0].DS.'templates'.DS.$module.'.tpl';
+				if(file_exists($file))
+					$template = $file;
 			}
 
 			//Save the 'mod' variable from smarty
 			$parent_vars = parent::getTemplateVars('mod');
 
 			//Register the new mod array
-			parent::assignGlobal('mod', self::$mod_vars);
+			$current_vars = self::$mod_vars;
+			parent::assignGlobal('mod', $current_vars);
 
+			//Clear the current vars incase there are modules in the template
+			self::$mod_vars = array();
 			//Render template
 			$output = parent::fetch('file:'.$template);
 
@@ -271,9 +278,92 @@
 			parent::assignGlobal('mod', $parent_vars);
 
 			//Purge the child array unless overriden
-			if(!$override)
-				self::$mod_vars = array();
+			if($override)
+				self::$mod_vars = $current_vars;
 
 			return $output;
+		}
+
+		/**
+		 * Takes unknown classes and loads plugin files for them
+		 * class name format: Smarty_PluginType_PluginName
+		 * plugin filename format: plugintype.pluginname.php
+		 *
+		 * SmartyPlus adds searching the ember sysplugins directories
+		 * Works with the Auto loader which loads classes for smarty
+		 * also providing ember overload
+		 *
+		 * @param string $plugin_name class plugin name to load
+		 * @return string |boolean filepath of loaded file or false
+		 */
+		public function loadPlugin($plugin_name, $check = true)
+		{
+			$_plugin_name = strtolower($plugin_name);
+			$_name_parts = explode('_', $_plugin_name, 3);
+			// class name must have three parts to be valid plugin
+			if (count($_name_parts) < 3 || $_name_parts[0] !== 'smarty') {
+				throw new SmartyException("plugin {$plugin_name} is not a valid name format");
+				return false;
+			}
+			// if type is "internal", get plugin from sysplugins
+			if ($_name_parts[1] == 'internal')
+			{
+				$file = SMARTY_SYSPLUGINS_OVERLOAD_DIR . $_plugin_name . '.php';
+				if (file_exists($file))
+				{
+					require_once($file);
+					return $file;
+				}
+			}
+
+			$val = parent::loadPlugin($plugin_name, $check);
+
+			if($val) return $val;
+
+			return FALSE;
+		}
+
+		/**
+		 * Looks up ember modules for smarty, returns the path to the module file
+		 * 
+		 * @param string $module_name
+		 * @param string $module_type
+		 * @return string filename
+		 */
+		public function getModuleFile($module_name, $module_type)
+		{
+			$plugin_name = explode('_', $module_name, 2);
+
+			if(count($plugin_name) != 2)
+				return NULL;
+
+			$file_name = DS.$plugin_name[0].DS.'modules'.DS.$module_type.'.'.$module_name.'.php';
+
+			foreach(self::$ember_plugins_dir as $_plugin_dir)
+			{
+				$file = rtrim($_plugin_dir, '/\\') . $file_name;
+
+				if(file_exists($file))
+				{
+					self::$ember_plugin_modules['smarty_' . $module_type . '_' . $module_name] = TRUE;
+					Debug::log('Ember Plugin Found: smarty_' . $module_type . '_' . $module_name, Debug::LOG_SMARTY);
+					return $file;
+				}
+			}
+		}
+
+		/**
+		 * Checks if a module is an ember module or not, relies on getModuleFile()
+		 * to build the list of modules. This should only be needed to compile
+		 * templates which should use the getModuleFile()
+		 * @param string $function name of the function
+		 * @return boolean
+		 */
+		public static function isEmberModule($function)
+		{
+			if(isset(self::$ember_plugin_modules[$function]))
+				return self::$ember_plugin_modules[$function];
+			else
+				return false;
 		}
 	}

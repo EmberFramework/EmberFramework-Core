@@ -31,7 +31,7 @@
 		case 'cli':
 //TODO: make this generic
 			$inital_path = ini_get('include_path');
-			ini_set('include_path', '/var/www/ember/system/include:/var/www/ember/system:/var/www/ember/system/lib:'.$inital_path);
+			ini_set('include_path', '/var/www/ember/system/include:/var/www/ember/system/lib/php:'.$inital_path);
 			define('SESSION_TYPE', 'cli');
 			$_SERVER = array();
 //TODO: make this generic
@@ -95,10 +95,20 @@
 					require(SMARTY_SYSPLUGINS_DIR . $_class . '.php');
 			}
 		}
-		elseif (is_file(CODE_BASE_ROOT.'system/class/'.str_replace("_", "/", $class).".class.php"))
-			require(CODE_BASE_ROOT.'system/class/'.str_replace("_", "/", $class).".class.php");
+		//Search the EMBER Class directory, replacing _ with directories
+		elseif(is_file(CODE_BASE_ROOT.'system/class/'.str_replace('_', '/', $class).'.class.php'))
+			require(CODE_BASE_ROOT.'system/class/'.str_replace('_', '/', $class).'.class.php');
+		//Search the Modules class directories, also replacing _ with directories, except for the plugin name
 		else
-			return FALSE;
+		{
+			$class_parts = explode('_', $class, 2);
+
+			$file = EMBER_PLUGIN_DIR.$class_parts[0].DS.'class'.DS.$class_parts[0].'_'.str_replace("_", "/", $class_parts[1]).'.class.php';
+			if(is_file($file))
+				require $file;
+			else
+				return FALSE;
+		}
 	}
 
 	//Used by FileDispatcher

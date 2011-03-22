@@ -22,6 +22,15 @@
 	define('THEMES_DIR', CODE_BASE_ROOT.'themes');
 	define('SITES_DIR', CODE_BASE_ROOT.'sites');
 
+	define('EMBER_LIB_DIR', CODE_BASE_ROOT.'system'.DS.'lib');
+	define('PHP_LIB_DIR', EMBER_LIB_DIR.DS.'php');
+	define('JS_LIB_DIR', EMBER_LIB_DIR.DS.'js');
+	define('CSS_LIB_DIR', EMBER_LIB_DIR.DS.'css');
+
+	define('EMBER_CORE_PLUGIN_DIR', CODE_BASE_ROOT.'system'.DS.'plugins'.DS);
+	define('EMBER_PLUGIN_DIR', CODE_BASE_ROOT.'plugins'.DS);
+
+	define('SMARY_PLUGINS_OVERLOAD_DIR', CODE_BASE_ROOT.'system'.DS.'smarty'.DS.'plugins'.DS);
 	define('SMARTY_SYSPLUGINS_OVERLOAD_DIR', CODE_BASE_ROOT.'system'.DS.'smarty'.DS.'sysplugins'.DS);
 
 	define('TEMP_SPACE', '/tmp/');
@@ -31,5 +40,7 @@
 
 	define('CONFIG_MODE_XML', 'xml');
 	define('CONFIG_MODE_DB', 'db');
+
+	define('DEFAULT_CACHE_TIME', 604800);
 
 	// no php end tag (not required- causes problems with unwanted whitespace)
