@@ -16,6 +16,8 @@
 		const ERR_NAME_EMPTY_STRING		= 'DB Connector Name cannot be an empty string';
 		const ERR_INVALID_DBCONN_MODE	= 'Invalid DB connection mode: "%mode%"';
 		const ERR_NO_SUCH_CONNECTION	= 'No such DB connection: "%name%" (%mode%)';
+		
+		const DEFAULT_TZ = 'US/Eastern';
 
 		static private $connections = array();
 		static private $default_conn = NULL;
@@ -126,13 +128,14 @@
 		 */
 		static private function doDBcall( $method, $sql, $db )
 		{
+$mode = DB::MODE_AUTO;
 			if( $db === NULL )
 			{
 				if( $sql->getDatabase() === NULL ) $db = 'default';
 				else $db = $sql->getDatabase();
 			}
 
-			$sql->setDatabase( DB::$connections[$db]['name'] );
+			$sql->setDatabase( DB::$connections[$db] );
 			$sql->setMode( $mode );
 
 			if( Debug::isEnabled() )

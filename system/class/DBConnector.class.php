@@ -60,7 +60,7 @@
 					throw new Exception( DBConnector::ERR_CANNOT_CONNECT );
 				$this->pdo = new PDO( $this->dsn, $this->user, $this->pass );
 			} catch( PDOException $pdo ) {
-				throw new Exception( DBConnector::ERR_CANNOT_CONNECT );
+				throw new Exception( DBConnector::ERR_CANNOT_CONNECT, $pdo );
 			}
 
 			$this->pdo->exec( 'SET time_zone="' . $this->tz . '"' );
