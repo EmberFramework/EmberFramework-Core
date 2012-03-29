@@ -28,8 +28,7 @@
 		const ERR_ARG_COUNT					= 'Incorrect number of arguments for query bind (expected %expected% but received %received%)';
 		const ERR_EXPECTED_ARG_AT_POS		= 'Expected an argument to bind to position %pos%, but did not find it.';
 
-//TODO: Exactly how long can a sql fieldname be?
-		const SQLFIELD_MAX_LEN				= 45;
+		const SQLFIELD_MAX_LEN				= 64;
 
 		/**
 		 * The unbound query
@@ -294,8 +293,7 @@
 						// escape backticks (for mysql)
 						if( $escape_style == SQL::ESCAPE_STYLE_MYSQL )
 							$fp = str_replace( '`', '``', $fp );
-//TODO: Are there any other valid characters for a fieldname?
-						if( 1 != preg_match( '/^[A-Za-z_`][A-Za-z0-9_`]*$/', $fp ) || strlen($fp) > SQL::SQLFIELD_MAX_LEN )
+						if( 1 != preg_match( '/^[A-Za-z0-9\$_`]+$/', $fp ) || strlen($fp) > SQL::SQLFIELD_MAX_LEN )
 							throw new Exception( str_replace( '%fieldname%', $arg, SQL::ERR_INVALID_SQL_FIELD ) );
 						switch( $escape_style )
 						{
