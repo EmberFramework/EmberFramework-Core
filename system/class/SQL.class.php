@@ -17,10 +17,12 @@
 		const ERR_INTERNAL					= 'Internal error';
 		const ERR_UNKNOWN_DATATYPE			= 'Unknown datatype during bind: "%type%"';
 		const ERR_INVALID_ESCAPE_STYLE		= 'Invalid escape style: "%style%"';
+		const ERR_INVALID_DATETIME			= 'Encountered invalid datetime value with not default value specified';
 		const ERR_NO_SQLITE_DRIVER			= 'No compatible SQLite driver available';
 		const ERR_EXPECTED_ARRAY			= 'Expected an array';
 		const ERR_EXPECTED_UINT				= 'Expected an unsigned integer';
 		const ERR_BIND_REQUIRED_INT			= 'Bind required an integer, but received: "%arg%"';
+		const ERR_BIND_REQUIRED_REAL			= 'Bind required a real number, but received: "%arg%"';
 		const ERR_INVALID_SQL_FIELD			= 'Encountered an invalid SQL field: "%fieldname%"';
 		const ERR_CALC_FOUND_ROWS_DISABLED	= 'You must enabled the SQL_CALC_FOUND_ROWS feature before you can retrieve the results';
 		const ERR_ARG_COUNT					= 'Incorrect number of arguments for query bind (expected %expected% but received %received%)';
@@ -310,8 +312,26 @@
 					$arg = implode( '.', $fieldname_parts );
 					break;
 				case 'd': // mysql datetime (accepts unix timestamp or MySQL DATETIME)
-//TODO: datetimes
-					break;
+					if( ($modifier == 'n' && $arg === NULL) || ($modifier == 'N' && !$arg) )
+					{
+						$arg = 'NULL';
+						break;
+					}
+
+					if( (String) intval($arg) == $arg )
+						$arg = date( 'Y-m-d H:i:s', $arg );
+
+					// YYYY-mm-dd HH:ii:ss
+					if( 1 != preg_match( '/^([1-3][0-9]{3,3})-(0?[1-9]|1[0-2])-(0?[1-9]|[1-2][0-9]|3[0-1])\s([0-1][0-9]|2[0-4]):([0-5][0-9]):([0-5][0-9])$/', $arg ) )
+					{
+						// YYYY-mm-dd
+						if( 1 != preg_match( '/^([1-3][0-9]{3,3})-(0?[1-9]|1[0-2])-(0?[1-9]|[1-2][0-9]|3[0-1])$/', $arg ) )
+							throw new Exception( SQL::ERR_INVALID_DATETIME );
+						$arg = SQL::stringEscape( $arg, $escape_style );
+						break; // validated (YYYY-MM-DD)
+					}
+					$arg = SQL::stringEscape( $arg, $escape_style );
+					break; // validated (YYYY-mm-dd HH:ii:ss)
 				case 'h': // htmlspecialchars
 					if( $arg )
 						$arg = htmlspecialchars( $arg );
@@ -339,9 +359,16 @@
 										$arg = $default;
 								}
 							}
+							else
+							{
+								if( $default === FALSE )
+									throw new Exception( str_replace( '%arg%', $arg, SQL::ERR_BIND_REQUIRED_INT ) );
+								else
+									$arg = $default;
+							}
 						}
 						else
-							$arg = $tmp; // give up
+							throw new Exception( SQL::ERR_INTERNAL . ' ' . __LINE__ );
 					}
 					break;
 				case 'u': // unsigned integer
@@ -350,7 +377,7 @@
 					else
 					{
 						$tmp = intval($arg);
-						if( (string) $tmp == (string) $arg )
+						if( (string) $tmp == (string) $arg && $tmp > 0 )
 							$arg = $tmp;
 						else if( PHP_VERSION_ID >= 50100 ) // need 5.0.5, but let's assume 5.1
 						{
@@ -361,12 +388,19 @@
 									if( $default === FALSE )
 										throw new Exception( str_replace( '%arg%', $arg, SQL::ERR_BIND_REQUIRED_INT ) );
 									else
-									$arg = $default;
+										$arg = $default;
 								}
+							}
+							else
+							{
+								if( $default === FALSE )
+									throw new Exception( str_replace( '%arg%', $arg, SQL::ERR_BIND_REQUIRED_INT ) );
+								else
+									$arg = $default;
 							}
 						}
 						else
-							$arg = $tmp; // give up
+							throw new Exception( SQL::ERR_INTERNAL . ' ' . __LINE__ );
 					}
 					break;
 				case 'a': // array (for use with IN)
@@ -383,11 +417,21 @@
 					$arg = '(' . implode( ',', $arg ) . ')';
 					break;
 				case 'r': // real number
-//TODO: need to engineer a regex to match mysql-compatible real numbers
+					if( ($modifier == 'n' && $arg === NULL) || ($modifier == 'N' && !$arg) )
+						$arg = 'NULL';
+					else
+					{
+						if( 1 != preg_match( '/^[\-]?[0-9]*[\.]?[0-9]*([eE][\-]?[0-9]*)?$/', (String) $arg ) )
+						{
+							if( $default === FALSE )
+								throw new Exception( str_replace( '%arg%', $arg, SQL::ERR_BIND_REQUIRED_REAL ) );
+							else
+								$arg = $default;
+						}
+					}
 					break;
 				case 'z': // serialized data
-					$arg = @serialize($arg);
-					$arg = ($modifier == 'n' && $arg === NULL) || ($modifier == 'N' && !$arg) ? 'NULL' : SQL::stringEscape( $arg, $escape_style );
+					$arg = ($modifier == 'n' && $arg === NULL) || ($modifier == 'N' && !$arg) ? 'NULL' : SQL::stringEscape( @serialize($arg), $escape_style );
 					break;
 				default:
 					throw new Exception( str_replace( '%type%', $type, SQL::ERR_UNKNOWN_DATATYPE ) );

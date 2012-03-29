@@ -130,13 +130,10 @@
 		{
 $mode = DB::MODE_AUTO;
 			if( $db === NULL )
-			{
-				if( $sql->getDatabase() === NULL ) $db = 'default';
-				else $db = $sql->getDatabase();
-			}
+				$db = 'default';
 
-			$sql->setDatabase( DB::$connections[$db] );
-			$sql->setMode( $mode );
+//			$sql->setDatabase( DB::$connections[$db] );
+//			$sql->setMode( $mode );
 
 			if( Debug::isEnabled() )
 			{
