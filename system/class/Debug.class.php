@@ -1,4 +1,5 @@
 <?php
+
 class Debug implements iSession
 {
 	//Session saved vars
@@ -352,3 +353,4 @@ class Debug implements iSession
 		self::$debug_printed = TRUE;
 	}
 }
+

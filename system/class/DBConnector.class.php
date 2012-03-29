@@ -60,7 +60,7 @@
 					throw new Exception( DBConnector::ERR_CANNOT_CONNECT );
 				$this->pdo = new PDO( $this->dsn, $this->user, $this->pass );
 			} catch( PDOException $pdo ) {
-				throw new Exception( DBConnector::ERR_CANNOT_CONNECT, $pdo );
+				throw new Exception( DBConnector::ERR_CANNOT_CONNECT, NULL, $pdo );
 			}
 
 			$this->pdo->exec( 'SET time_zone="' . $this->tz . '"' );
@@ -329,9 +329,7 @@
 		 */
 		public static function checkSQLobject( $sql )
 		{
-			if( !is_object( $sql ) )
-				throw new Exception( DBConnector::ERR_EXPECTED_SQL_OBJ );
-			if( get_class( $sql ) != 'SQL' )
+			if( !($sql instanceof SQL) )
 				throw new Exception( DBConnector::ERR_EXPECTED_SQL_OBJ );
 		}
 
