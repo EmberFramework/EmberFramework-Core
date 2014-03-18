@@ -91,6 +91,14 @@
 
 		private static $ember_plugin_modules = array();
 
+		private static $css_files = array();
+		private static $css_blocks = array();
+		private static $js_files = array();
+		private static $js_blocks = array();
+
+		const JS_DEFAULT_POSITION = 50;
+		const CSS_DEFAULT_POSITION = 50;
+
 		/**
 		 * Sets up the SmartyPlus enviroment, must set up the Site before this call
 		 * @global SmartyPlus $smarty
@@ -185,8 +193,11 @@
 		 * This uses template inheritence to handle the loading of containers
 		 * Containers should be loaded with 'ember_container:' resource handler
 		 * in the {extends} tag.
+		 *
+		 * Does not work, JS and CSS includes can not be loaded into the
+		 * container using the inheritence method for loading templates.
 		 */
-		public function displayURI()
+		public function displayURINoContainer()
 		{
 			//Look up template from url (processed by FileDispatcher)
 			parent::display('file:'.FileDispatcher::getFilePath());
@@ -200,7 +211,7 @@
 		 * template to use as the container for the current template. If no container
 		 * is specified 'default.tpl' is used
 		 */
-		public function displayURILegacy()
+		public function displayURI()
 		{
 
 			//Look up template from url (processed by FileDispatcher)
@@ -229,6 +240,168 @@
 		public function assignMod($name, $value)
 		{
 			self::$mod_vars[$name] = $value;
+		}
+
+		/**
+		 * Registers a JS lib file to be loaded as part of the page load
+		 * @param string $name Js library to load
+		 * @param uint $position the position to load this js library, lower positions are first
+		 * @param boolean $preload If True will load the JS in the header instead of the footer
+		 */
+		public function includeJSLib($name, $position = NULL, $preload = FALSE)
+		{
+			$libs = array(
+			    'jquery' => array('file' => '/lib/jquery.min.js', 'position' => 10),
+			    );
+			
+			if(isset($libs[$name]))
+				$this->includeJSFile($name, $libs[$name]['file'], (isset($position)?$position:$libs[$name]['file']), $preload );
+			else
+				throw new exception('Unknown JS library '.$name);
+		}
+
+		/**
+		 * Registers a JS file to be loaded as part of the page load
+		 * @param string $name used to comment the file in the html output
+		 * @param string $file path to the file, FileDispatcher used to locate file
+		 * @param uint $position the position to load this js library, lower positions are first
+		 * @param boolean $preload If True will load the JS in the header instead of the footer
+		 */
+		public function includeJSFile($name, $file, $position = self::JS_DEFAULT_POSITION, $preload = FALSE)
+		{
+			if(empty($file))
+				throw new exception('Must specify a JS file to include');
+
+			if($file{1} != '/')
+				$file = '/'.$file;
+
+			if(isset($this->js_files[$file]))
+			{
+				if($this->js_files[$file]['position'] > $position)
+					$this->js_files[$file]['position'] = $position;
+				
+				if($preload && !$this->js_files[$file]['preload'])
+					$this->js_files[$file]['preload'] = $preload;
+
+				$this->js_files[$file]['name'] = array_merge((array)$this->js_files[$file]['name'], (array)$name);
+			}
+			else
+			{
+				if(FileDispatcher::getFilePath(FileDispatcher::FILETYPE_JS, $file) === FALSE)
+					throw new exception('Unknown JS File '.$file);
+				
+				$this->js_files[] = array(
+				    'name' => $name,
+				    'file' => $file,
+				    'position' => $position,
+				    'preload' => $preload
+				);
+			}
+		}
+
+		/**
+		 * Used to register a block of JS code, <script> should not be used
+		 * @param string $label used to comment the file in the html output
+		 * @param string $js block of JS code to be included in page load
+		 * @param uint $position the position to load this js library, lower positions are first
+		 * @param boolean $preload If True will load the JS in the header instead of the footer
+		 */
+		public function includeJSBlock($label, $js, $position = self::JS_DEFAULT_POSITION, $preload = FALSE)
+		{
+			$this->js_blocks[] = array(
+			    'name' => $name,
+			    'position' => $position,
+			    'block' => $js,
+			    'preload' => $preload
+				);
+		}
+
+		/**
+		 * Registers a CSS lib file to be loaded as part of the page load
+		 * @param string $name CSS library to load
+		 * @param uint $position the position to load this js library, lower positions are first
+		 */
+		public function includeCSSLib($name, $position = NULL)
+		{
+			$libs = array(
+			    'blueprint' => array('file' => '/lib/blueprint.js', 'position' => 10),
+			    );
+
+			if(isset($libs[$name]))
+				$this->includeCSSFile($name, $libs[$name]['file'], (isset($position)?$position:$libs[$name]['file']) );
+			else
+				throw new exception('Unknown CSS library '.$name);
+		}
+
+		/**
+		 * Registers a CSS file to be loaded as part of the page load
+		 * @param string $name used to comment the file in the html output
+		 * @param string $file path to the file, FileDispatcher used to locate file
+		 * @param uint $position the position to load this css library, lower positions are first
+		 */
+		public function includeCSSFile($name, $file, $position = self::CSS_DEFAULT_POSITION)
+		{
+			if(empty($file))
+				throw new exception('Must specify a CSS file to include');
+
+			if($file{1} != '/')
+				$file = '/'.$file;
+
+			if(isset($this->css_files[$file]))
+			{
+				if($this->css_files[$file]['position'] > $position)
+					$this->css_files[$file]['position'] = $position;
+
+				$this->css_files[$file]['name'] = array_merge((array)$this->css_files[$file]['name'], (array)$name);
+			}
+			else
+			{
+				if(FileDispatcher::getFilePath(FileDispatcher::FILETYPE_CSS, $file) === FALSE)
+					throw new exception('Unknown CSS File '.$file);
+
+				$this->css_files[] = array(
+				    'name' => $name,
+				    'file' => $file,
+				    'position' => $position,
+				);
+			}
+		}
+
+		/**
+		 * Used to register a block of CSS code, <style> should not be used
+		 * @param string $label used to comment the file in the html output
+		 * @param string $js block of CSS code to be included in page load
+		 * @param uint $position the position to load this js library, lower positions are first
+		 */
+		public function includeCSSBlock($label, $css, $position = self::CSS_DEFAULT_POSITION)
+		{
+			$this->css_blocks[] = array(
+			    'name' => $name,
+			    'position' => $position,
+			    'block' => $css
+				);
+		}
+
+		public function getCSSBlocks()
+		{
+			//TODO: order and sort unique names
+			return $this->css_blocks;
+		}
+
+		public function getCSSFiles()
+		{
+			//TODO: order and sort unique names
+			return $this->css_files;
+		}
+
+		public function getJSBlocks($preload = FALSE)
+		{
+//TODO: order and sort unique names
+		}
+
+		public function getJSFiles($preload = FALSE)
+		{
+//TODO: order and sort unique names
 		}
 
 		/**
