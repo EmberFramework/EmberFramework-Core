@@ -371,7 +371,8 @@ class FileDispatcher
 			return $tree;
 		}
 		else
-			throw new exception('Not a dir');
+			//throw new exception('Not a dir');
+			return array();
 	}
 
 	/**
