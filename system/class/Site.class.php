@@ -102,7 +102,10 @@ class Site implements iSession
 					self::loadSite();
 					break;
 				case 'cli':
-//TODO: make this work for CLI mode.
+//TODO: Improve this, currenlty it assumes you set $_SERVER['SERVER_NAME'] to the site you want to load
+					if(isset($_SERVER['SERVER_NAME']))
+						self::loadSite();
+					break;
 				default:
 					break;
 			}

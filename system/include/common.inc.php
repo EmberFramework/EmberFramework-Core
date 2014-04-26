@@ -170,6 +170,8 @@
 	//INIT Cache
 
 	Site::init();
+	
+	Request::initialize();
 
 	if(SESSION_TYPE == 'web')
 	{
