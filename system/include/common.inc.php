@@ -103,7 +103,7 @@
 		{
 			$class_parts = explode('_', $class, 2);
 
-			$file = EMBER_PLUGIN_DIR.$class_parts[0].DS.'class'.DS.$class_parts[0].'_'.str_replace("_", "/", $class_parts[1]).'.class.php';
+			$file = EMBER_PLUGIN_DIR.$class_parts[0].DS.'class'.DS.$class_parts[0].'/'.str_replace("_", "/", $class_parts[1]).'.class.php';
 			if(is_file($file))
 				require $file;
 			else

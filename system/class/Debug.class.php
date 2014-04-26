@@ -60,6 +60,7 @@ class Debug implements iSession
 	const LOG_GLOBALS = 'LOG_GLOBALS';
 	const LOG_PAGELOAD_TIME = 'LOG_PAGE_LOAD_TIME';
 	const LOG_CODEBASE = 'LOG_CODEBASE';
+	const LOG_REQUEST = 'LOG_REQUEST';
 	/**
 	 * Used by validate options
 	 * @var array of avalable options
@@ -79,6 +80,7 @@ class Debug implements iSession
 		self::LOG_PERMISSION,
 		self::LOG_SMARTY,
 		self::LOG_FILEDISPATCHER,
+		self::LOG_REQUEST,
 		);
 
 	//Display modes
