@@ -33,7 +33,7 @@
 			$inital_path = ini_get('include_path');
 			ini_set('include_path', '/var/www/ember/system/include:/var/www/ember/system/lib/php:'.$inital_path);
 			define('SESSION_TYPE', 'cli');
-			$_SERVER = array();
+			if(!is_array($_SERVER)) $_SERVER = array();
 //TODO: make this generic
 			$_SERVER['DOCUMENT_ROOT'] = '/var/www/ember/webroot';
 			$_SERVER['HTTP_USER_AGENT'] = 'cli';
