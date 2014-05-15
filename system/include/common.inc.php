@@ -33,7 +33,7 @@
 			$inital_path = ini_get('include_path');
 			ini_set('include_path', '/var/www/ember/system/include:/var/www/ember/system/lib/php:'.$inital_path);
 			define('SESSION_TYPE', 'cli');
-			$_SERVER = array();
+			if(!is_array($_SERVER)) $_SERVER = array();
 //TODO: make this generic
 			$_SERVER['DOCUMENT_ROOT'] = '/var/www/ember/webroot';
 			$_SERVER['HTTP_USER_AGENT'] = 'cli';
@@ -103,7 +103,7 @@
 		{
 			$class_parts = explode('_', $class, 2);
 
-			$file = EMBER_PLUGIN_DIR.$class_parts[0].DS.'class'.DS.$class_parts[0].'_'.str_replace("_", "/", $class_parts[1]).'.class.php';
+			$file = EMBER_PLUGIN_DIR.$class_parts[0].DS.'class'.DS.$class_parts[0].'/'.str_replace("_", "/", $class_parts[1]).'.class.php';
 			if(is_file($file))
 				require $file;
 			else
@@ -170,6 +170,8 @@
 	//INIT Cache
 
 	Site::init();
+	
+	Request::initialize();
 
 	if(SESSION_TYPE == 'web')
 	{
